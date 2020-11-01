@@ -2,9 +2,10 @@ package main
 
 import (
 	"io"
+	"mime"
 	"net/http"
 	"os"
-	"strings"
+	"path/filepath"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -41,8 +42,8 @@ func main() {
 
 // Handler
 func serveStatic(c echo.Context) error {
-	path := strings.TrimLeft(c.Request().RequestURI, "/")
-	if path == "" {
+	path := c.Request().RequestURI
+	if path == "/" {
 		path = "/index.html"
 	}
 
@@ -50,6 +51,8 @@ func serveStatic(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+
+	c.Response().Writer.Header().Add("content-type", mime.TypeByExtension(filepath.Ext(path)))
 
 	if _, err := io.Copy(c.Response().Writer, f); err != nil {
 		return err
